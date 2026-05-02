@@ -1,0 +1,15 @@
+services:
+  postgres:
+    image: postgres
+    container_name: miniarcade-postgres
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+    volumes:
+      - miniarcade-pgdata:/var/lib/postgresql
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+
+volumes:
+  miniarcade-pgdata:
