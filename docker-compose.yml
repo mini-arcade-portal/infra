@@ -1,15 +1,61 @@
 services:
+
   postgres:
-    image: postgres
+    image: postgres:16
     container_name: miniarcade-postgres
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     ports:
       - "5432:5432"
-    environment:
-      POSTGRES_USER: postgres
-      POSTGRES_PASSWORD: postgres
     volumes:
-      - miniarcade-pgdata:/var/lib/postgresql
-      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql
+      - miniarcade-pgdata:/var/lib/postgresql/data
+      - ./init-db.sql:/docker-entrypoint-initdb.d/init-db.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  auth-service:
+    build:
+      context: ../auth-service
+    container_name: miniarcade-auth
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/miniarcade_auth
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+      JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  score-service:
+    build:
+      context: ../score-service
+    container_name: miniarcade-score
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/miniarcade_scores
+      SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
+      SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
+      JWT_SECRET: ${JWT_SECRET}
+    depends_on:
+      postgres:
+        condition: service_healthy
+
+  gateway:
+    build:
+      context: ../gateway
+    container_name: miniarcade-gateway
+    environment:
+      AUTH_SERVICE_URI: http://auth-service:8081
+      SCORE_SERVICE_URI: http://score-service:8082
+    ports:
+      - "8080:8080"
+    depends_on:
+      - auth-service
+      - score-service
 
 volumes:
   miniarcade-pgdata:
