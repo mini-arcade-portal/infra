@@ -27,6 +27,7 @@ services:
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
       JWT_EXPIRATION_MS: ${JWT_EXPIRATION_MS}
+    #Swaggerhez kell
     ports:
       - "8081:8081"
     depends_on:
@@ -42,6 +43,7 @@ services:
       SPRING_DATASOURCE_USERNAME: ${POSTGRES_USER}
       SPRING_DATASOURCE_PASSWORD: ${POSTGRES_PASSWORD}
       JWT_SECRET: ${JWT_SECRET}
+    #Swaggerhez kell
     ports:
       - "8082:8082"
     depends_on:
@@ -60,6 +62,15 @@ services:
     depends_on:
       - auth-service
       - score-service
+
+
+  frontend:
+      build: ../frontend
+      container_name: miniarcade-frontend
+      ports:
+        - "80:80"
+      depends_on:
+        - gateway
 
 volumes:
   miniarcade-pgdata:
