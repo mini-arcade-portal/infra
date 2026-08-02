@@ -1,0 +1,6 @@
+apiVersion: v2
+name: mini-arcade
+description: Umbrella Helm chart for the Mini Arcade Portál microservices (postgres, auth-service, score-service, gateway, frontend)
+type: application
+version: 0.1.0
+appVersion: "0.1.0"

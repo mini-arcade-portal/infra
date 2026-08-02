@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: auth-service
+  labels:
+    app: mini-arcade
+    component: auth-service
+spec:
+  selector:
+    app: mini-arcade
+    component: auth-service
+  ports:
+    - port: {{ .Values.authService.port }}
+      targetPort: {{ .Values.authService.port }}

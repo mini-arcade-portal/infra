@@ -1,0 +1,14 @@
+Mini Arcade Portál telepítve a(z) "{{ .Release.Namespace }}" namespace-be.
+
+Pod állapotok ellenőrzése:
+  kubectl get pods -n {{ .Release.Namespace }}
+
+Elérés:
+{{- if .Values.ingress.enabled }}
+  http://{{ .Values.ingress.host }}
+  (állíts be egy DNS A rekordot a VM publikus IP-jére, vagy tesztelésre írd be a
+  gépeden a /etc/hosts fájlba: "<VM_IP> {{ .Values.ingress.host }}")
+{{- else }}
+  Az Ingress ki van kapcsolva — használj port-forwardot helyi teszteléshez:
+  kubectl port-forward -n {{ .Release.Namespace }} svc/frontend 8080:{{ .Values.frontend.port }}
+{{- end }}

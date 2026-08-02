@@ -1,0 +1,36 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: frontend
+  labels:
+    app: mini-arcade
+    component: frontend
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mini-arcade
+      component: frontend
+  template:
+    metadata:
+      labels:
+        app: mini-arcade
+        component: frontend
+    spec:
+      containers:
+        - name: frontend
+          image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "frontend" "tag" .Values.frontend.tag) }}
+          ports:
+            - containerPort: {{ .Values.frontend.port }}
+          resources:
+            {{- toYaml .Values.frontend.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.frontend.port }}
+            initialDelaySeconds: 5
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.frontend.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 20

@@ -1,0 +1,41 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gateway
+  labels:
+    app: mini-arcade
+    component: gateway
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: mini-arcade
+      component: gateway
+  template:
+    metadata:
+      labels:
+        app: mini-arcade
+        component: gateway
+    spec:
+      containers:
+        - name: gateway
+          image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "gateway" "tag" .Values.gateway.tag) }}
+          ports:
+            - containerPort: {{ .Values.gateway.port }}
+          env:
+            - name: AUTH_SERVICE_URI
+              value: "http://auth-service:{{ .Values.authService.port }}"
+            - name: SCORE_SERVICE_URI
+              value: "http://score-service:{{ .Values.scoreService.port }}"
+          resources:
+            {{- toYaml .Values.gateway.resources | nindent 12 }}
+          readinessProbe:
+            tcpSocket:
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: 10
+            periodSeconds: 10
+          livenessProbe:
+            tcpSocket:
+              port: {{ .Values.gateway.port }}
+            initialDelaySeconds: 20
+            periodSeconds: 20
