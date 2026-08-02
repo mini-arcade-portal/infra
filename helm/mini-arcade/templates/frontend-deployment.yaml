@@ -17,6 +17,8 @@ spec:
         app: mini-arcade
         component: frontend
     spec:
+      imagePullSecrets:
+        - name: {{ .Values.imagePullSecretName }}
       containers:
         - name: frontend
           image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "frontend" "tag" .Values.frontend.tag) }}
