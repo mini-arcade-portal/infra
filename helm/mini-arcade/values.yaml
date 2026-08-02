@@ -1,6 +1,6 @@
 # Image registry the app images are pulled from (GitHub Container Registry).
-# Set to e.g. ghcr.io/your-github-username once the CI pipeline (month 4) publishes images there.
-imageRegistry: ghcr.io/CHANGE-ME
+imageRegistry: ghcr.io/urgyan-balint
+imagePullSecretName: ghcr-pull-secret
 
 postgres:
   image: postgres:16
