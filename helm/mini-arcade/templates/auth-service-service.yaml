@@ -10,5 +10,6 @@ spec:
     app: mini-arcade
     component: auth-service
   ports:
-    - port: {{ .Values.authService.port }}
+    - name: http
+      port: {{ .Values.authService.port }}
       targetPort: {{ .Values.authService.port }}

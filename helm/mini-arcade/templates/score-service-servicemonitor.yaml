@@ -1,0 +1,16 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: score-service
+  labels:
+    app: mini-arcade
+    component: score-service
+spec:
+  selector:
+    matchLabels:
+      app: mini-arcade
+      component: score-service
+  endpoints:
+    - port: http
+      path: /actuator/prometheus
+      interval: 30s
