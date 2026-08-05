@@ -1,7 +1,6 @@
 # Image registry the app images are pulled from (GitHub Container Registry).
 imageRegistry: ghcr.io/urgyan-balint
 imagePullSecretName: ghcr-pull-secret
-
 postgres:
   image: postgres:16
   storage: 1Gi
@@ -9,7 +8,6 @@ postgres:
   databases:
     auth: miniarcade_auth
     scores: miniarcade_scores
-
 authService:
   tag: latest
   port: 8081
@@ -21,7 +19,6 @@ authService:
     limits:
       cpu: 500m
       memory: 512Mi
-
 scoreService:
   tag: latest
   port: 8082
@@ -32,9 +29,8 @@ scoreService:
     limits:
       cpu: 500m
       memory: 512Mi
-
 gateway:
-  tag: latest
+  tag: 74079ddc83e7887ee4f6e965f7e4442d5139d33f
   port: 8080
   resources:
     requests:
@@ -43,7 +39,6 @@ gateway:
     limits:
       cpu: 500m
       memory: 512Mi
-
 frontend:
   tag: latest
   port: 80
@@ -54,7 +49,6 @@ frontend:
     limits:
       cpu: 250m
       memory: 128Mi
-
 ingress:
   enabled: true
   className: traefik
@@ -62,7 +56,6 @@ ingress:
   tls:
     enabled: false
     secretName: mini-arcade-tls
-
 # Never commit real values here. Supply them at install time, e.g.:
 #   helm install mini-arcade infra/helm/mini-arcade -n mini-arcade --create-namespace \
 #     --set secrets.jwtSecret="$(openssl rand -base64 64)" \
