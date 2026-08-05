@@ -10,5 +10,6 @@ spec:
     app: mini-arcade
     component: score-service
   ports:
-    - port: {{ .Values.scoreService.port }}
+    - name: http
+      port: {{ .Values.scoreService.port }}
       targetPort: {{ .Values.scoreService.port }}

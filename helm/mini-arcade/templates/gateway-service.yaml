@@ -10,5 +10,6 @@ spec:
     app: mini-arcade
     component: gateway
   ports:
-    - port: {{ .Values.gateway.port }}
+    - name: http
+      port: {{ .Values.gateway.port }}
       targetPort: {{ .Values.gateway.port }}
