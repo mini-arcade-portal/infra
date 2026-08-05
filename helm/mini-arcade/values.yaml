@@ -52,7 +52,7 @@ frontend:
 ingress:
   enabled: true
   className: traefik
-  host: mini-arcade.example.com
+  host: 3.66.117.89.nip.io
   tls:
     enabled: false
     secretName: mini-arcade-tls
