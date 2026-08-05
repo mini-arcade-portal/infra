@@ -40,7 +40,7 @@ gateway:
       cpu: 500m
       memory: 512Mi
 frontend:
-  tag: latest
+  tag: de8ed6578fa927efd4d7ee285fab10e433f4a993
   port: 80
   resources:
     requests:
