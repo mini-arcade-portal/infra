@@ -9,7 +9,7 @@ postgres:
     auth: miniarcade_auth
     scores: miniarcade_scores
 authService:
-  tag: 8068de204c7e87d3832539731b2560f715ed2e74
+  tag: 51b6ad3487bdc48e1c7b812f2752b69f16325611
   port: 8081
   jwtExpirationMs: "3600000"
   resources:
