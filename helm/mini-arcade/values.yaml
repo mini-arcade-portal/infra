@@ -20,7 +20,7 @@ authService:
       cpu: 500m
       memory: 512Mi
 scoreService:
-  tag: 62b71db536e25c6728490e0ac0815aad69998091
+  tag: 8b6e0b5af39aec6fc5e79f2b6f117b5e831b226c
   port: 8082
   resources:
     requests:
