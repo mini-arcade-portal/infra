@@ -62,6 +62,27 @@ ingress:
 grafanaDashboard:
   enabled: true
   sidecarLabel: grafana_dashboard
+
+# Issues the Ingress certificate through Let's Encrypt. Turn on only once a real
+# domain resolves to this cluster — the HTTP-01 challenge needs Let's Encrypt to
+# reach port 80 at ingress.host, and repeated failures hit their rate limits.
+# Requires cert-manager (argocd/cert-manager-application.yaml) to be installed.
+certManager:
+  enabled: false
+  email: ""
+  issuerName: letsencrypt-prod
+  acmeServer: https://acme-v02.api.letsencrypt.org/directory
+
+# Horizontal pod autoscaling for the three Java services. Scales on CPU measured
+# against each pod's CPU request, so tune the requests above from real load
+# before turning this on. Enabling it also drops the fixed replica count from the
+# Deployments, handing that field to the autoscaler.
+autoscaling:
+  enabled: false
+  minReplicas: 1
+  maxReplicas: 3
+  targetCPUUtilizationPercentage: 70
+  scaleDownStabilizationSeconds: 300
 # Never commit real values here. Supply them at install time, e.g.:
 #   helm install mini-arcade infra/helm/mini-arcade -n mini-arcade --create-namespace \
 #     --set secrets.jwtSecret="$(openssl rand -base64 64)" \

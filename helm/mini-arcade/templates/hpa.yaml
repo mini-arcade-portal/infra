@@ -1,0 +1,38 @@
+{{- if .Values.autoscaling.enabled }}
+{{- $svcs := list
+      (dict "name" "auth-service"  "cfg" .Values.authService)
+      (dict "name" "score-service" "cfg" .Values.scoreService)
+      (dict "name" "gateway"       "cfg" .Values.gateway) }}
+{{- range $svcs }}
+---
+# Scales on CPU relative to the pod's CPU *request*, so the request in values.yaml
+# has to reflect real usage — an inflated request makes the service look idle and
+# it never scales up. The metrics-server that k3s ships supplies these readings.
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: {{ .name }}
+  labels:
+    app: mini-arcade
+    component: {{ .name }}
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: {{ .name }}
+  minReplicas: {{ $.Values.autoscaling.minReplicas }}
+  maxReplicas: {{ $.Values.autoscaling.maxReplicas }}
+  metrics:
+    - type: Resource
+      resource:
+        name: cpu
+        target:
+          type: Utilization
+          averageUtilization: {{ $.Values.autoscaling.targetCPUUtilizationPercentage }}
+  behavior:
+    scaleDown:
+      # Wait out short lulls before giving replicas back, so a bursty load
+      # pattern doesn't cause the replica count to oscillate.
+      stabilizationWindowSeconds: {{ $.Values.autoscaling.scaleDownStabilizationSeconds }}
+{{- end }}
+{{- end }}
