@@ -52,9 +52,9 @@ frontend:
 ingress:
   enabled: true
   className: traefik
-  host: 3.66.117.89.nip.io
+  host: arcade.urgyanbalintviktor.com
   tls:
-    enabled: false
+    enabled: true
     secretName: mini-arcade-tls
 # Ships the service dashboard to Grafana as a labelled ConfigMap, which the
 # Grafana sidecar picks up automatically. Keeps the dashboard in version control
@@ -68,8 +68,8 @@ grafanaDashboard:
 # reach port 80 at ingress.host, and repeated failures hit their rate limits.
 # Requires cert-manager (argocd/cert-manager-application.yaml) to be installed.
 certManager:
-  enabled: false
-  email: ""
+  enabled: true
+  email: urgyanbalintviktor@gmail.com
   issuerName: letsencrypt-prod
   acmeServer: https://acme-v02.api.letsencrypt.org/directory
 
