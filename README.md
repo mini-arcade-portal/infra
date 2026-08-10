@@ -107,6 +107,19 @@ Three ArgoCD Applications. Two of them carry secrets and therefore exist only on
 kubectl apply -f argocd/cert-manager-application.yaml
 ```
 
+Certificates are issued through the ACME DNS-01 challenge, which requires a Cloudflare API
+token with `Zone:DNS:Edit` permission on the zone. Create the secret by hand — it is not
+committed:
+
+```bash
+kubectl create secret generic cloudflare-api-token \
+  --from-literal=api-token='<token>' -n cert-manager
+```
+
+DNS-01 is used rather than HTTP-01 because cert-manager verifies the challenge from inside
+the cluster before submitting it, and an HTTP-01 check resolves the public hostname to the
+instance's own Elastic IP, which EC2 does not route back to itself.
+
 ArgoCD runs with `selfHeal` enabled, so it reverts manual changes to the cluster. Do not run
 `helm install` or `helm upgrade` against the `mini-arcade` release — all changes go through
 git.

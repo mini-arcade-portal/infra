@@ -72,6 +72,13 @@ certManager:
   email: urgyanbalintviktor@gmail.com
   issuerName: letsencrypt-prod
   acmeServer: https://acme-v02.api.letsencrypt.org/directory
+  # Cloudflare API token used for the DNS-01 challenge. Create the Secret by hand
+  # in the cert-manager namespace — the token must not be committed:
+  #   kubectl create secret generic cloudflare-api-token \
+  #     --from-literal=api-token='<token>' -n cert-manager
+  cloudflare:
+    apiTokenSecretName: cloudflare-api-token
+    apiTokenSecretKey: api-token
 
 # Horizontal pod autoscaling for the three Java services. Scales on CPU measured
 # against each pod's CPU request, so tune the requests above from real load
