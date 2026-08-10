@@ -5,7 +5,7 @@ metadata:
   name: mini-arcade
   labels:
     app: mini-arcade
-  {{- if .Values.ingress.tls.enabled }}
+  {{- if and .Values.ingress.tls.enabled .Values.certManager.enabled }}
   annotations:
     cert-manager.io/cluster-issuer: {{ .Values.certManager.issuerName }}
   {{- end }}

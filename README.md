@@ -107,18 +107,30 @@ Three ArgoCD Applications. Two of them carry secrets and therefore exist only on
 kubectl apply -f argocd/cert-manager-application.yaml
 ```
 
-Certificates are issued through the ACME DNS-01 challenge, which requires a Cloudflare API
-token with `Zone:DNS:Edit` permission on the zone. Create the secret by hand — it is not
-committed:
+## TLS
 
-```bash
-kubectl create secret generic cloudflare-api-token \
-  --from-literal=api-token='<token>' -n cert-manager
+Traffic is encrypted end to end through Cloudflare:
+
+```
+browser --HTTPS (Cloudflare certificate)--> Cloudflare --HTTPS (origin certificate)--> Traefik
 ```
 
-DNS-01 is used rather than HTTP-01 because cert-manager verifies the challenge from inside
-the cluster before submitting it, and an HTTP-01 check resolves the public hostname to the
-instance's own Elastic IP, which EC2 does not route back to itself.
+Cloudflare proxies both hostnames with the SSL/TLS mode set to **Full (strict)**, so the leg
+between Cloudflare and the cluster is encrypted as well. The origin certificate is a
+Cloudflare Origin Certificate covering `*.urgyanbalintviktor.com`, loaded into a TLS secret
+in each namespace:
+
+```bash
+kubectl create secret tls mini-arcade-tls --cert=origin.crt --key=origin.key -n mini-arcade
+kubectl create secret tls grafana-tls     --cert=origin.crt --key=origin.key -n monitoring
+```
+
+`certManager.enabled` is `false`. The ACME route was attempted first and did not complete on
+this cluster: HTTP-01 fails because cert-manager verifies the challenge from inside the
+cluster, where the public hostname resolves to the instance's own Elastic IP, and EC2 does
+not route traffic back to itself; DNS-01 published the TXT records correctly but the
+challenges never left `Processing`. The cert-manager Application manifest and the chart's
+ClusterIssuer template are kept so the ACME route can be revisited by flipping one flag.
 
 ArgoCD runs with `selfHeal` enabled, so it reverts manual changes to the cluster. Do not run
 `helm install` or `helm upgrade` against the `mini-arcade` release — all changes go through
