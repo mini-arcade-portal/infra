@@ -59,7 +59,6 @@ that ships with k3s.
 |---|---|---|
 | `mini-arcade` | the five application components | `mini-arcade` |
 | `monitoring` | Prometheus, Grafana, exporters | `monitoring` |
-| `cert-manager` | TLS certificate management | `cert-manager` |
 | `argocd` | ArgoCD itself | installed manually |
 
 ## Deployment pipeline
@@ -85,8 +84,7 @@ committing the tag update here.
 
 | Value | Default | Effect |
 |---|---|---|
-| `ingress.tls.enabled` | `false` | TLS and the cert-manager annotation on the Ingress |
-| `certManager.enabled` | `false` | creates the Let's Encrypt `ClusterIssuer` |
+| `ingress.tls.enabled` | `false` | serves the Ingress over TLS from `ingress.tls.secretName` |
 | `autoscaling.enabled` | `false` | HPAs for the Java services; also removes the fixed replica count |
 | `grafanaDashboard.enabled` | `true` | ships the Grafana dashboard as a ConfigMap |
 
@@ -95,17 +93,13 @@ They are never committed — the ArgoCD Application supplies them at sync time.
 
 ## GitOps deployment
 
-Three ArgoCD Applications. Two of them carry secrets and therefore exist only on the VM:
+Two ArgoCD Applications. Both carry secrets, so their manifests exist only on the VM rather
+than in this repository:
 
 | Application | Source | Manifest location |
 |---|---|---|
 | `mini-arcade` | this repository, `helm/mini-arcade` | VM: `~/application.json` |
 | `monitoring` | `kube-prometheus-stack` chart | VM: `~/monitoring-application-ssa.json` |
-| `cert-manager` | `cert-manager` chart | `argocd/cert-manager-application.yaml` |
-
-```bash
-kubectl apply -f argocd/cert-manager-application.yaml
-```
 
 ## TLS
 
@@ -125,12 +119,12 @@ kubectl create secret tls mini-arcade-tls --cert=origin.crt --key=origin.key -n 
 kubectl create secret tls grafana-tls     --cert=origin.crt --key=origin.key -n monitoring
 ```
 
-`certManager.enabled` is `false`. The ACME route was attempted first and did not complete on
-this cluster: HTTP-01 fails because cert-manager verifies the challenge from inside the
-cluster, where the public hostname resolves to the instance's own Elastic IP, and EC2 does
-not route traffic back to itself; DNS-01 published the TXT records correctly but the
-challenges never left `Processing`. The cert-manager Application manifest and the chart's
-ClusterIssuer template are kept so the ACME route can be revisited by flipping one flag.
+The certificate is valid for 15 years and needs no renewal automation, which is why
+cert-manager is not part of this setup. Issuing certificates through ACME was tried first
+and did not complete on this cluster: HTTP-01 fails because cert-manager verifies the
+challenge from inside the cluster, where the public hostname resolves to the instance's own
+Elastic IP and EC2 does not route that traffic back; DNS-01 published the TXT records
+correctly but the challenges never left `Processing`.
 
 ArgoCD runs with `selfHeal` enabled, so it reverts manual changes to the cluster. Do not run
 `helm install` or `helm upgrade` against the `mini-arcade` release — all changes go through
