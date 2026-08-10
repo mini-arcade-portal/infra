@@ -1,6 +1,7 @@
-# Image registry the app images are pulled from (GitHub Container Registry).
+# Image registry the app images are pulled from. The packages are public, so no
+# pull secret is needed.
 imageRegistry: ghcr.io/urgyan-balint
-imagePullSecretName: ghcr-pull-secret
+
 postgres:
   image: postgres:16
   storage: 1Gi

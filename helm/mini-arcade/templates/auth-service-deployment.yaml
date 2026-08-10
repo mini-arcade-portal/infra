@@ -21,8 +21,6 @@ spec:
         app: mini-arcade
         component: auth-service
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.imagePullSecretName }}
       containers:
         - name: auth-service
           image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "auth-service" "tag" .Values.authService.tag) }}

@@ -21,8 +21,6 @@ spec:
         app: mini-arcade
         component: score-service
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.imagePullSecretName }}
       containers:
         - name: score-service
           image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "score-service" "tag" .Values.scoreService.tag) }}
