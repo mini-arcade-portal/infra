@@ -21,8 +21,6 @@ spec:
         app: mini-arcade
         component: gateway
     spec:
-      imagePullSecrets:
-        - name: {{ .Values.imagePullSecretName }}
       containers:
         - name: gateway
           image: {{ include "mini-arcade.image" (dict "registry" .Values.imageRegistry "repository" "gateway" "tag" .Values.gateway.tag) }}
