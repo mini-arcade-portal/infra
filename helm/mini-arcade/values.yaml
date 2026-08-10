@@ -56,6 +56,13 @@ ingress:
   tls:
     enabled: false
     secretName: mini-arcade-tls
+
+# Ships the service dashboard to Grafana as a labelled ConfigMap, which the
+# Grafana sidecar picks up automatically. Keeps the dashboard in version control
+# instead of living only inside a Grafana pod with no persistent storage.
+grafanaDashboard:
+  enabled: true
+  sidecarLabel: grafana_dashboard
 # Never commit real values here. Supply them at install time, e.g.:
 #   helm install mini-arcade infra/helm/mini-arcade -n mini-arcade --create-namespace \
 #     --set secrets.jwtSecret="$(openssl rand -base64 64)" \

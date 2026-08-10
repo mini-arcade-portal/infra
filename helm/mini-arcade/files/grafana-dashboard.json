@@ -1,0 +1,218 @@
+{
+  "title": "Mini Arcade — service metrikák",
+  "description": "A három Java microservice futásidejű metrikái (Spring Boot Actuator + Micrometer).",
+  "tags": ["mini-arcade"],
+  "timezone": "browser",
+  "editable": true,
+  "schemaVersion": 39,
+  "refresh": "30s",
+  "time": { "from": "now-1h", "to": "now" },
+  "templating": {
+    "list": [
+      {
+        "type": "datasource",
+        "name": "datasource",
+        "label": "Adatforrás",
+        "query": "prometheus",
+        "hide": 0,
+        "current": {}
+      }
+    ]
+  },
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Heap memória",
+      "description": "A JVM heap tényleges használata service-enként.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "fillOpacity": 12, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (jvm_memory_used_bytes{namespace=\"mini-arcade\", area=\"heap\"})",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "Non-heap memória",
+      "description": "Metaspace, code cache és egyéb heapen kívüli területek.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 0 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "bytes",
+          "custom": { "fillOpacity": 12, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (jvm_memory_used_bytes{namespace=\"mini-arcade\", area=\"nonheap\"})",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "CPU használat",
+      "description": "A JVM folyamat CPU-terhelése (1.0 = egy teljes mag).",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 7, "w": 8, "x": 0, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "percentunit",
+          "min": 0,
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (process_cpu_usage{namespace=\"mini-arcade\"})",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 4,
+      "type": "timeseries",
+      "title": "Élő szálak",
+      "description": "A JVM-ben futó szálak száma.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 7, "w": 8, "x": 8, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "short",
+          "min": 0,
+          "custom": { "fillOpacity": 0, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (jvm_threads_live_threads{namespace=\"mini-arcade\"})",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 5,
+      "type": "timeseries",
+      "title": "Garbage collection",
+      "description": "GC-vel töltött idő aránya. Tartósan magas érték memórianyomásra utal.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 7, "w": 8, "x": 16, "y": 8 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": { "fillOpacity": 10, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "list", "placement": "bottom" },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (rate(jvm_gc_pause_seconds_sum{namespace=\"mini-arcade\"}[5m]))",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 6,
+      "type": "timeseries",
+      "title": "HTTP kérések",
+      "description": "Beérkező kérések másodpercenként. Üres marad, amíg nincs forgalom — nyisd meg a portált, és megjelenik.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 0, "y": 15 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "reqps",
+          "min": 0,
+          "custom": { "fillOpacity": 15, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application) (rate(http_server_requests_seconds_count{namespace=\"mini-arcade\"}[5m]))",
+          "legendFormat": "{{application}}"
+        }
+      ]
+    },
+    {
+      "id": 7,
+      "type": "timeseries",
+      "title": "Átlagos válaszidő",
+      "description": "Kérésenkénti átlagos kiszolgálási idő végpontonként.",
+      "datasource": { "type": "prometheus", "uid": "${datasource}" },
+      "gridPos": { "h": 8, "w": 12, "x": 12, "y": 15 },
+      "fieldConfig": {
+        "defaults": {
+          "unit": "s",
+          "min": 0,
+          "custom": { "fillOpacity": 0, "lineWidth": 2, "showPoints": "never" }
+        },
+        "overrides": []
+      },
+      "options": {
+        "legend": { "displayMode": "table", "placement": "bottom", "calcs": ["lastNotNull", "max"] },
+        "tooltip": { "mode": "multi", "sort": "desc" }
+      },
+      "targets": [
+        {
+          "refId": "A",
+          "datasource": { "type": "prometheus", "uid": "${datasource}" },
+          "expr": "sum by (application, uri) (rate(http_server_requests_seconds_sum{namespace=\"mini-arcade\"}[5m])) / sum by (application, uri) (rate(http_server_requests_seconds_count{namespace=\"mini-arcade\"}[5m]))",
+          "legendFormat": "{{application}} {{uri}}"
+        }
+      ]
+    }
+  ]
+}

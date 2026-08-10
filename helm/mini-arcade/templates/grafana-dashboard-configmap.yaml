@@ -1,0 +1,15 @@
+{{- if .Values.grafanaDashboard.enabled }}
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: mini-arcade-grafana-dashboard
+  labels:
+    app: mini-arcade
+    component: monitoring
+    # The Grafana sidecar watches every namespace for ConfigMaps carrying this
+    # label and loads their contents as dashboards — no manual import needed.
+    {{ .Values.grafanaDashboard.sidecarLabel }}: "1"
+data:
+  mini-arcade-dashboard.json: |
+{{ .Files.Get "files/grafana-dashboard.json" | indent 4 }}
+{{- end }}
