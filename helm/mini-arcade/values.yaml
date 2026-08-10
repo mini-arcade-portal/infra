@@ -64,12 +64,12 @@ grafanaDashboard:
   enabled: true
   sidecarLabel: grafana_dashboard
 
-# Issues the Ingress certificate through Let's Encrypt. Turn on only once a real
-# domain resolves to this cluster — the HTTP-01 challenge needs Let's Encrypt to
-# reach port 80 at ingress.host, and repeated failures hit their rate limits.
-# Requires cert-manager (argocd/cert-manager-application.yaml) to be installed.
+# Issues the Ingress certificate through Let's Encrypt. Currently off: validation
+# never completed on this cluster (see README), so TLS is served from a Cloudflare
+# Origin Certificate loaded into the ingress.tls.secretName Secret by hand. Kept
+# here so the ACME route can be picked up again without rewriting the templates.
 certManager:
-  enabled: true
+  enabled: false
   email: urgyanbalintviktor@gmail.com
   issuerName: letsencrypt-prod
   acmeServer: https://acme-v02.api.letsencrypt.org/directory
