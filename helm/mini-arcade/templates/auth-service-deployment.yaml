@@ -6,7 +6,11 @@ metadata:
     app: mini-arcade
     component: auth-service
 spec:
+  {{- if not .Values.autoscaling.enabled }}
+  # Omitted while autoscaling is on, otherwise ArgoCD would keep resetting the
+  # replica count the HorizontalPodAutoscaler just changed.
   replicas: 1
+  {{- end }}
   selector:
     matchLabels:
       app: mini-arcade

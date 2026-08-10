@@ -1,0 +1,25 @@
+{{- if .Values.certManager.enabled }}
+# Let's Encrypt account used by cert-manager to issue the Ingress certificates.
+# Requires cert-manager to be installed first (argocd/cert-manager-application.yaml).
+#
+# A ClusterIssuer is cluster-scoped, so strictly speaking it is infrastructure
+# rather than part of this application. It lives here because the cluster runs a
+# single application and this keeps the moving parts down — worth knowing if the
+# cluster ever hosts more than Mini Arcade.
+apiVersion: cert-manager.io/v1
+kind: ClusterIssuer
+metadata:
+  name: {{ .Values.certManager.issuerName }}
+  labels:
+    app: mini-arcade
+spec:
+  acme:
+    server: {{ .Values.certManager.acmeServer }}
+    email: {{ required "certManager.email is required when certManager.enabled — Let's Encrypt sends expiry warnings there" .Values.certManager.email | quote }}
+    privateKeySecretRef:
+      name: {{ .Values.certManager.issuerName }}-account-key
+    solvers:
+      - http01:
+          ingress:
+            ingressClassName: {{ .Values.ingress.className }}
+{{- end }}
