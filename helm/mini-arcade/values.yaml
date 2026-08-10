@@ -1,7 +1,6 @@
 # Image registry the app images are pulled from. The packages are public, so no
 # pull secret is needed.
 imageRegistry: ghcr.io/urgyan-balint
-
 postgres:
   image: postgres:16
   storage: 1Gi
@@ -41,7 +40,7 @@ gateway:
       cpu: 500m
       memory: 512Mi
 frontend:
-  tag: de8ed6578fa927efd4d7ee285fab10e433f4a993
+  tag: b641b6ac9c6731292609b0d884dbef77ff6208bb
   port: 80
   resources:
     requests:
@@ -64,7 +63,6 @@ ingress:
 grafanaDashboard:
   enabled: true
   sidecarLabel: grafana_dashboard
-
 # Horizontal pod autoscaling for the three Java services. Scales on CPU measured
 # against each pod's CPU request, so tune the requests above from real load
 # before turning this on. Enabling it also drops the fixed replica count from the
