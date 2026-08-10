@@ -55,6 +55,7 @@ ingress:
   host: arcade.urgyanbalintviktor.com
   tls:
     enabled: true
+    # Cloudflare origin certificate, loaded into this Secret by hand — see README.
     secretName: mini-arcade-tls
 
 # Ships the service dashboard to Grafana as a labelled ConfigMap, which the
@@ -63,23 +64,6 @@ ingress:
 grafanaDashboard:
   enabled: true
   sidecarLabel: grafana_dashboard
-
-# Issues the Ingress certificate through Let's Encrypt. Currently off: validation
-# never completed on this cluster (see README), so TLS is served from a Cloudflare
-# Origin Certificate loaded into the ingress.tls.secretName Secret by hand. Kept
-# here so the ACME route can be picked up again without rewriting the templates.
-certManager:
-  enabled: false
-  email: urgyanbalintviktor@gmail.com
-  issuerName: letsencrypt-prod
-  acmeServer: https://acme-v02.api.letsencrypt.org/directory
-  # Cloudflare API token used for the DNS-01 challenge. Create the Secret by hand
-  # in the cert-manager namespace — the token must not be committed:
-  #   kubectl create secret generic cloudflare-api-token \
-  #     --from-literal=api-token='<token>' -n cert-manager
-  cloudflare:
-    apiTokenSecretName: cloudflare-api-token
-    apiTokenSecretKey: api-token
 
 # Horizontal pod autoscaling for the three Java services. Scales on CPU measured
 # against each pod's CPU request, so tune the requests above from real load
