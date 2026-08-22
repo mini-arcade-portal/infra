@@ -57,6 +57,10 @@ ingress:
     enabled: true
     # Cloudflare origin certificate, loaded into this Secret by hand — see README.
     secretName: mini-arcade-tls
+  rateLimit:
+    enabled: true
+    average: 20 # requests/s per source, Traefik default period 1s
+    burst: 40
 # Ships the service dashboard to Grafana as a labelled ConfigMap, which the
 # Grafana sidecar picks up automatically. Keeps the dashboard in version control
 # instead of living only inside a Grafana pod with no persistent storage.

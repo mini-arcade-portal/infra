@@ -85,6 +85,7 @@ committing the tag update here.
 | Value | Default | Effect |
 |---|---|---|
 | `ingress.tls.enabled` | `false` | serves the Ingress over TLS from `ingress.tls.secretName` |
+| `ingress.rateLimit.enabled` | `true` | adds a Traefik `Middleware` (CRD) that rate-limits all traffic through the Ingress, per source IP (`ingress.rateLimit.average`/`burst`) |
 | `autoscaling.enabled` | `false` | HPAs for the Java services; also removes the fixed replica count |
 | `grafanaDashboard.enabled` | `true` | ships the Grafana dashboard as a ConfigMap |
 
@@ -129,6 +130,19 @@ correctly but the challenges never left `Processing`.
 ArgoCD runs with `selfHeal` enabled, so it reverts manual changes to the cluster. Do not run
 `helm install` or `helm upgrade` against the `mini-arcade` release — all changes go through
 git.
+
+## Rate limiting
+
+A Traefik `Middleware` (CRD, `templates/middleware.yaml`) rate-limits all traffic through the
+Ingress, applied via the `traefik.ingress.kubernetes.io/router.middlewares` annotation on
+`templates/ingress.yaml`. Because the Ingress routes everything through a single path rule to
+`frontend`, the limit applies to the whole site, not just `/api/`.
+
+**Known caveat**: Traefik sits behind Cloudflare, so by default it sees Cloudflare's edge IP
+as the request source rather than the real client IP, and the rate limit may bucket all
+traffic together instead of per-client. Resolving that requires configuring
+`forwardedHeaders.trustedIPs` on k3s's built-in Traefik (a `HelmChartConfig` resource in
+`kube-system`), which is outside this chart — a follow-up if per-client accuracy is needed.
 
 ## Monitoring
 

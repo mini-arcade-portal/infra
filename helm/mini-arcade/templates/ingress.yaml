@@ -5,6 +5,10 @@ metadata:
   name: mini-arcade
   labels:
     app: mini-arcade
+  {{- if .Values.ingress.rateLimit.enabled }}
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: mini-arcade-mini-arcade-ratelimit@kubernetescrd
+  {{- end }}
 spec:
   ingressClassName: {{ .Values.ingress.className }}
   {{- if .Values.ingress.tls.enabled }}
