@@ -30,7 +30,7 @@ scoreService:
       cpu: 500m
       memory: 512Mi
 gateway:
-  tag: 34a59f38974b598f1234fb8b2301dedccc9d52c2
+  tag: 5ae4edda8fb658459c9b9345e9b5e691bc453056
   port: 8080
   resources:
     requests:
