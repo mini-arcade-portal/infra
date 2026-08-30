@@ -64,7 +64,7 @@ tartozó Traefik ingress controllerrel.
 |---|---|---|
 | `mini-arcade` | az öt alkalmazáskomponens | `mini-arcade` |
 | `monitoring` | Prometheus, Grafana, exporterek | `monitoring` |
-| `argocd` | maga az ArgoCD | manuálisan telepítve |
+| `argocd` | maga az ArgoCD (publikus, csak olvasható, itt: `argocd.urgyanbalintviktor.com`) | manuálisan telepítve |
 
 ## Deployment pipeline
 
@@ -127,6 +127,7 @@ secretbe van betöltve:
 ```bash
 kubectl create secret tls mini-arcade-tls --cert=origin.crt --key=origin.key -n mini-arcade
 kubectl create secret tls grafana-tls     --cert=origin.crt --key=origin.key -n monitoring
+kubectl create secret tls argocd-tls      --cert=origin.crt --key=origin.key -n argocd
 ```
 
 A tanúsítvány 15 évig érvényes és nem igényel megújítási automatizálást,
@@ -151,13 +152,14 @@ alkalmazva. Mivel az Ingress mindent egyetlen path szabályon keresztül
 routol a `frontend`-hez, a limit az egész oldalra vonatkozik, nem csak az
 `/api/`-ra.
 
-**Ismert korlát**: a Traefik a Cloudflare mögött van, ezért alapból a
-Cloudflare edge IP-jét látja kérésforrásként a valós kliens IP helyett, és a
-rate limit előfordulhat, hogy az összes forgalmat egy kosárba teszi kliens
-szerinti szétválasztás helyett. Ennek megoldásához a k3s beépített
-Traefik-jén be kell állítani a `forwardedHeaders.trustedIPs`-t (egy
-`HelmChartConfig` resource a `kube-system`-ben), ez a chart-on kívül esik —
-egy lehetséges follow-up, ha kliens szerinti pontosság kell.
+A Traefik a Cloudflare mögött van, ezért extra konfiguráció nélkül a Cloudflare edge
+IP-jét látná kérésforrásként a valós kliens IP helyett, és az összes forgalmat egy
+kosárba tenné kliens szerinti szétválasztás helyett. A `k3s/traefik-helmchartconfig.yaml`
+ezt oldja meg: beállítja a `forwardedHeaders.trustedIPs`-t a k3s beépített Traefik-jén,
+ami csak a Cloudflare publikált IP-tartományairól érkező kapcsolatok esetén bízik meg az
+`X-Forwarded-For` fejlécben — így a rate limit (és a Traefik access log) már a valós
+kliens IP alapján dolgozik. Ezt az IP-lista időnként érdemes frissíteni a Cloudflare
+hivatalos listája alapján, bár ritkán változik.
 
 ## Monitoring
 
@@ -189,11 +191,24 @@ kubectl -n monitoring get secret monitoring-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d
 ```
 
-Az ArgoCD, Prometheus és Grafana felületek nincsenek publikusan kitéve.
-Port-forwarddal érhetők el a VM-en:
+Az ArgoCD publikusan elérhető a `https://argocd.urgyanbalintviktor.com` címen (lásd
+`k3s/argocd-ingress.yaml` és `k3s/argocd-middleware.yaml`), csak-olvasás jelleggel azok
+számára, akiknek nincs VM/cluster hozzáférésük. Ehhez tartozik egy saját fiók, `advisor`,
+ami az ArgoCD beépített `readonly` szerepkörére van korlátozva az `argocd-rbac-cm`-en
+keresztül — nem tud sync-elni, törölni vagy szerkeszteni semmit. Az `admin` fiókot és
+annak hitelesítő adatait (lásd fent) sosem osztjuk meg.
+
+Az `advisor` fiók jelszavának (újra)kiadása:
 
 ```bash
-kubectl port-forward -n argocd svc/argocd-server 8081:443 &
+argocd login argocd.urgyanbalintviktor.com
+argocd account update-password --account advisor
+```
+
+A Prometheus és a Grafana nincsenek publikusan kitéve. Port-forwarddal érhetők el a
+VM-en:
+
+```bash
 kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090 &
 kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80 &
 ```
@@ -201,6 +216,5 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80 &
 majd alagutazva a helyi gépről:
 
 ```bash
-ssh -i ~/.ssh/dev.pem -L 8081:localhost:8081 -L 9090:localhost:9090 \
-    -L 3000:localhost:3000 ubuntu@<elastic-ip>
+ssh -i ~/.ssh/dev.pem -L 9090:localhost:9090 -L 3000:localhost:3000 ubuntu@<elastic-ip>
 ```

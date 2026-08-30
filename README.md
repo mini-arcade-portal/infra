@@ -61,7 +61,7 @@ that ships with k3s.
 |---|---|---|
 | `mini-arcade` | the five application components | `mini-arcade` |
 | `monitoring` | Prometheus, Grafana, exporters | `monitoring` |
-| `argocd` | ArgoCD itself | installed manually |
+| `argocd` | ArgoCD itself (public, read-only, at `argocd.urgyanbalintviktor.com`) | installed manually |
 
 ## Deployment pipeline
 
@@ -120,6 +120,7 @@ in each namespace:
 ```bash
 kubectl create secret tls mini-arcade-tls --cert=origin.crt --key=origin.key -n mini-arcade
 kubectl create secret tls grafana-tls     --cert=origin.crt --key=origin.key -n monitoring
+kubectl create secret tls argocd-tls      --cert=origin.crt --key=origin.key -n argocd
 ```
 
 The certificate is valid for 15 years and needs no renewal automation, which is why
@@ -140,11 +141,13 @@ Ingress, applied via the `traefik.ingress.kubernetes.io/router.middlewares` anno
 `templates/ingress.yaml`. Because the Ingress routes everything through a single path rule to
 `frontend`, the limit applies to the whole site, not just `/api/`.
 
-**Known caveat**: Traefik sits behind Cloudflare, so by default it sees Cloudflare's edge IP
-as the request source rather than the real client IP, and the rate limit may bucket all
-traffic together instead of per-client. Resolving that requires configuring
-`forwardedHeaders.trustedIPs` on k3s's built-in Traefik (a `HelmChartConfig` resource in
-`kube-system`), which is outside this chart — a follow-up if per-client accuracy is needed.
+Traefik sits behind Cloudflare, so without extra config it would see Cloudflare's edge IP as
+the request source rather than the real client IP, bucketing all traffic together instead of
+per-client. `k3s/traefik-helmchartconfig.yaml` fixes this by configuring
+`forwardedHeaders.trustedIPs` on k3s's built-in Traefik, trusting `X-Forwarded-For` only for
+connections coming from Cloudflare's published IP ranges — so the rate limit (and Traefik's
+access log) now key on the real client IP. That range list should be refreshed occasionally
+from Cloudflare's published IP list, though it rarely changes.
 
 ## Monitoring
 
@@ -175,11 +178,22 @@ kubectl -n monitoring get secret monitoring-grafana \
   -o jsonpath="{.data.admin-password}" | base64 -d
 ```
 
-The ArgoCD, Prometheus and Grafana interfaces are not exposed publicly. Reach them by
-port-forwarding on the VM:
+ArgoCD is reachable publicly at `https://argocd.urgyanbalintviktor.com` (see
+`k3s/argocd-ingress.yaml` and `k3s/argocd-middleware.yaml`), for read-only viewing by people
+without VM/cluster access. It has its own account, `advisor`, restricted to ArgoCD's built-in
+`readonly` role via `argocd-rbac-cm` — it cannot sync, delete, or edit anything. The
+`admin` account and its credentials (see above) are never shared.
+
+To (re)issue the `advisor` account's password:
 
 ```bash
-kubectl port-forward -n argocd svc/argocd-server 8081:443 &
+argocd login argocd.urgyanbalintviktor.com
+argocd account update-password --account advisor
+```
+
+Prometheus and Grafana are not exposed publicly. Reach them by port-forwarding on the VM:
+
+```bash
 kubectl port-forward -n monitoring svc/monitoring-kube-prometheus-prometheus 9090:9090 &
 kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80 &
 ```
@@ -187,6 +201,5 @@ kubectl port-forward -n monitoring svc/monitoring-grafana 3000:80 &
 and tunnelling from the local machine:
 
 ```bash
-ssh -i ~/.ssh/dev.pem -L 8081:localhost:8081 -L 9090:localhost:9090 \
-    -L 3000:localhost:3000 ubuntu@<elastic-ip>
+ssh -i ~/.ssh/dev.pem -L 9090:localhost:9090 -L 3000:localhost:3000 ubuntu@<elastic-ip>
 ```
