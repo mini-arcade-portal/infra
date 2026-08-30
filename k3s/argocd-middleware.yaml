@@ -1,0 +1,11 @@
+# Stricter than helm/mini-arcade's app-level rate limit (20/40) since this
+# protects a login page rather than general app traffic.
+apiVersion: traefik.io/v1alpha1
+kind: Middleware
+metadata:
+  name: argocd-ratelimit
+  namespace: argocd
+spec:
+  rateLimit:
+    average: 5
+    burst: 10

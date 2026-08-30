@@ -1,0 +1,28 @@
+# Public read-only access to ArgoCD (e.g. for a thesis advisor). Requires
+# argocd-server to run with server.insecure=true (TLS terminates at Traefik,
+# same as the rest of the stack) and the argocd-tls Secret to exist in this
+# namespace — see infra/README.md's TLS and Operations sections.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: argocd
+  namespace: argocd
+  annotations:
+    traefik.ingress.kubernetes.io/router.middlewares: argocd-argocd-ratelimit@kubernetescrd
+spec:
+  ingressClassName: traefik
+  tls:
+    - hosts:
+        - argocd.urgyanbalintviktor.com
+      secretName: argocd-tls
+  rules:
+    - host: argocd.urgyanbalintviktor.com
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: argocd-server
+                port:
+                  number: 80
