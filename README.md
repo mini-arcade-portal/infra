@@ -1,3 +1,5 @@
+**English** | [Magyar](README.hu.md)
+
 # infra
 
 Infrastructure for the Mini Arcade Portal: local development environment, Helm chart and
